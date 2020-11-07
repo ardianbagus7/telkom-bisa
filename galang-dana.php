@@ -1,9 +1,94 @@
 <?php
-// Create database connection using config file
-include_once("config.php");
+// Variabel
+$title = $description = $target_funding = $target_end = $image = "";
+$titleErr = $descriptionErr = $target_fundingErr = $target_endErr = $imageErr = "";
 
-// Fetch all users data from database
-$result = mysqli_query($mysqli, "SELECT * FROM donasi ORDER BY id DESC");
+// Validasi Input
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (empty($_POST["title"])) {
+        $titleErr = "Judul tidak boleh kosong";
+    } else {
+        $title = test_input($_POST["title"]);
+    }
+
+    if (empty($_POST["description"])) {
+        $descriptionErr = "Deskripsi tidak boleh kosong";
+    } else {
+        $description = test_input($_POST["description"]);
+    }
+
+    if (empty($_POST["target_funding"])) {
+        $target_fundingErr = "Target Pendanaan tidak boleh kosong";
+    } else {
+        $target_funding = test_input($_POST["target_funding"]);
+    }
+
+    if (empty($_POST["target_end"])) {
+        $target_endErr = "Target Berakhir tidak boleh kosong";
+    } else {
+        $target_end = test_input($_POST["target_end"]);
+    }
+
+    $target_dir = "uploads/";
+    $target_file = $target_dir . basename($_FILES["image"]["name"]);
+    $uploadOk = 1;
+    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+    $check = getimagesize($_FILES["image"]["tmp_name"]);
+    if ($check !== false) {
+        $uploadOk = 1;
+    } else {
+        $imageErr =  "File harus gambar";
+        $uploadOk = 0;
+    }
+
+    if (
+        $imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
+    ) {
+        $imageErr =  "File hanya boleh berekstensi JPG,PNG,JPEG";
+        $uploadOk = 0;
+    }
+
+    if ($_FILES["image"]["size"] > 2000000) {
+        $imageErr = "File tidak boleh lebih dari 2MB";
+        $uploadOk = 0;
+    }
+
+    // Check if $uploadOk is set to 0 by an error
+    if ($uploadOk == 0) {
+        $imageErr = "File gagal diupload";
+    } else {
+        if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
+            $image = $target_dir . htmlspecialchars(basename($_FILES["image"]["name"]));
+            $uploadOk = 1;
+        } else {
+            $imageErr = "File gagal diupload";
+            $uploadOk = 0;
+        }
+    }
+
+    $result = '';
+    if (!empty($_POST["title"]) & !empty($_POST["description"]) & !empty($_POST["target_funding"]) & !empty($_POST["target_end"]) &  $uploadOk == 1) {
+
+        // Create database connection using config file
+        include_once("config.php");
+
+        // Insert galang dana data into table
+        $result = mysqli_query($mysqli, "INSERT INTO donasi(title,description,target_funding,target_end,image) VALUES('$title','$description','$target_funding','$target_end','$image')");
+
+        header("Location: index.php");
+    } else {
+
+    }
+}
+
+function test_input($data)
+{
+    $data = trim($data);
+    $data = stripslashes($data);
+    $data = htmlspecialchars($data);
+    return $data;
+}
+
 ?>
 
 <html>
@@ -36,17 +121,7 @@ $result = mysqli_query($mysqli, "SELECT * FROM donasi ORDER BY id DESC");
 
 
 <body>
-    <!-- ? Preloader Start -->
-    <div id="preloader-active">
-        <div class="preloader d-flex align-items-center justify-content-center">
-            <div class="preloader-inner position-relative">
-                <div class="preloader-circle"></div>
-                <div class="preloader-img pere-text">
-                    <a>Telkom<br> Bisa</a>
-                </div>
-            </div>
-        </div>
-    </div>
+
     <!-- Preloader Start -->
     <header>
         <!-- Header Start -->
@@ -111,103 +186,51 @@ $result = mysqli_query($mysqli, "SELECT * FROM donasi ORDER BY id DESC");
                         <div class="row">
                             <div class="col-xl-6 col-lg-6 col-md-8 col-sm-10">
                                 <div class="hero__caption">
-                                    <h1 data-animation="fadeInUp" data-delay=".6s">Galang Dana Online<br> Untuk Teman Kita.</h1>
-                                    <P data-animation="fadeInUp" data-delay=".8s">Website untuk galang dana secara online dan transparan untuk membantu teman-teman kita.</P>
-                                    <!-- Hero-btn -->
-                                    <div class="hero__btn">
-                                        <!-- <a type="button" class="btn hero-btn mb-10" data-toggle="modal" data-target="galang-dana.php" data-animation="fadeInLeft" data-delay=".8s">
-                                            Galang Dana Sekarang
-                                        </a> -->
-                                        <a href="galang-dana.php" class="btn hero-btn mb-10" data-animation="fadeInLeft" data-delay=".8s">Galang Dana Sekarang</a>
-                                        <!-- <a href="industries.html" class="cal-btn ml-15" data-animation="fadeInRight" data-delay="1.0s">
-                                            <i class="flaticon-null"></i>
-                                            <p>+12 1325 41</p>
-                                        </a> -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Our Cases Start -->
-        <div class="our-cases-area section-padding30" id="donasi">
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-xl-6 col-lg-7 col-md-10 col-sm-10">
-                        <!-- Section Tittle -->
-                        <div class="section-tittle text-center mb-80">
-                            <h2>Mari Bantu Teman Kita</h2>
-                            <span>Kita Bisa Bersatu Untuk Membantu Teman Kita Yang Mengalami Kesusahan</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <?php
-                    $i = 1;
-                    while ($donasi = mysqli_fetch_array($result)) {
-                        $total = round($donasi['total'] / $donasi['target_funding'] * 100);
-                        if ($total > 100) {
-                            $total = 100;
-                        }
-                        echo '<div class="col-lg-4 col-md-6 col-sm-6">';
-                        echo '<div class="single-cases mb-40">';
-                        echo '<div class="cases-img">';
-                        echo '<img src="' . $donasi['image'] . '" alt="">';
-                        echo '</div>';
-                        echo '<div class="cases-caption">';
-                        echo '<h3><a href=add.php?id=' . $donasi['id'] . '>' . $donasi['title']  . '</a></h3>';
-                        echo '<div class="single-skill mb-15">';
-                        echo '<div class="bar-progress">';
-                        echo '<div id="bar' . $i . '" class="barfiller">';
-                        echo '<div class="tipWrap">';
-                        echo '<span class="tip"></span>';
-                        echo '</div>';
-                        echo '<span class="fill" data-percentage="' . $total . '"></span>';
-                        echo '</div>';
-                        echo '</div>';
-                        echo '</div>';
-                        echo '<div class="prices d-flex justify-content-between">';
-                        echo '<p>Terkumpul <span>' . $donasi['total'] . '</span></p>';
-                        echo '<p>Dari <span>' . $donasi['target_funding'] . '</span></p>';
-                        echo '</div>';
-                        echo '</div>';
-                        echo '</div>';
-                        echo '</div>';
-                        $i = $i + 1;
-                    }
-                    ?>
-                    <!-- <div class="col-lg-4 col-md-6 col-sm-6">
-                        <div class="single-cases mb-40">
-                            <div class="cases-img">
-                                <img src="assets/img/gallery/case2.png" alt="">
-                            </div>
-                            <div class="cases-caption">
-                                <h3><a href="#">Providing Healthy Food For The Children</a></h3>
-                                <div class="single-skill mb-15">
-                                    <div class="bar-progress">
-                                        <div id="bar2" class="barfiller">
-                                            <div class="tipWrap">
-                                                <span class="tip"></span>
+                                    <h1 data-animation="fadeInUp" data-delay=".6s">Galang Dana Sekarang</h1>
+                                    <!-- <P data-animation="fadeInUp" data-delay=".8s">Website untuk galang dana secara online dan transparan untuk membantu teman-teman kita.</P> -->
+                                    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" name="form1" enctype="multipart/form-data">
+                                        <div class="form-group" data-animation="fadeInLeft" data-delay=".8s">
+                                            <div class="input-group mb-3">
+                                                <input class="form-control" name="title" id="title" type="text" placeholder="Isi judul..">
                                             </div>
-                                            <span class="fill" data-percentage="25"></span>
+                                            <h5> <?php echo $titleErr; ?></h5>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="prices d-flex justify-content-between">
-                                    <p>Raised:<span> $20,000</span></p>
-                                    <p>Goal:<span> $35,000</span></p>
+                                        <div class="form-group" data-animation="fadeInLeft" data-delay=".8s">
+                                            <div class="input-group mb-3">
+                                                <textarea class="form-control w-100" name="description" id="description" cols="30" rows="9" placeholder="Tulis Deskripsi.."></textarea>
+                                            </div>
+                                            <h5 class="error"> <?php echo $descriptionErr; ?></h5>
+                                        </div>
+                                        <div class="form-group" data-animation="fadeInLeft" data-delay=".8s">
+                                            <div class="input-group mb-3">
+                                                <input class="form-control" min="100000" name="target_funding" id="target_funding" type="number" placeholder="Isi Nominal Target Pendanaan..">
+                                            </div>
+                                            <h5 class="error"> <?php echo $target_fundingErr; ?></h5>
+                                        </div>
+                                        <div class="form-group " data-animation="fadeInLeft" data-delay=".8s">
+                                            <div class="input-group mb-3">
+                                                <input class="form-control datepicker" name="target_end" id="target_end" type="text" placeholder="Target Berakhir..">
+                                            </div>
+                                            <h5 class="error"> <?php echo $target_endErr; ?></h5>
+                                        </div>
+                                        <div class="form-group mt-10" data-animation="fadeInLeft" data-delay=".8s">
+                                            <h4>Masukkan Foto</h4>
+                                            <div class="input-group mb-3">
+                                                <input type="file" name="image" id="image">
+                                            </div>
+                                            <h5 class="error"> <?php echo $imageErr; ?></h5>
+                                        </div>
+                                        <div class="border-top-0 d-flex justify-content-center" data-animation="fadeInLeft" data-delay=".8s">
+                                            <button class="w-100 btn hero-btn mb-10" type="submit" name="Submit" value="Add">Kirim Galang Dana</button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
-                    </div> -->
-
+                    </div>
                 </div>
             </div>
         </div>
-        <!-- Our Cases End -->
     </main>
 
     <footer>

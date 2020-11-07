@@ -3080,6 +3080,14 @@ hr {
   display: inline-block;
 }
 
+.slider-area .hero__caption h5 {
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 300;
+  color: #ff0000;
+  display: inline-block;
+}
+
 .slider-area .hero__caption p {
   color: #464d65;
   margin-bottom: 42px;
@@ -4055,6 +4063,57 @@ hr {
 .team-social li:nth-child(3) a {
   -webkit-transition-delay: 0.3s;
           transition-delay: 0.3s;
+}
+
+.form-control {
+  height: 50px;
+  width: 100%;
+  border-color: #f0e9ff;
+  font-size: 13px;
+  color: #999999;
+  border-radius: 0;
+}
+
+.form-control::-webkit-input-placeholder {
+  color: #999999;
+}
+
+.form-control:-ms-input-placeholder {
+  color: #999999;
+}
+
+.form-control::-ms-input-placeholder {
+  color: #999999;
+}
+
+.form-control::placeholder {
+  color: #999999;
+}
+
+.form-control:focus {
+  border-color: #f0e9ff;
+  outline: 0;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+}
+
+.form-group span {
+  color: #ff0000;
+  margin-bottom: 5px;
+}
+
+.input-group button {
+  background: #fff;
+  border-left: 0;
+  border: 1px solid #f0e9ff;
+  padding: 4px 15px;
+  border-left: 0;
+}
+
+.input-group button i,
+.input-group button span {
+  font-size: 14px;
+  color: #fff;
 }
 
 .count-down-area .count-down-wrapper {

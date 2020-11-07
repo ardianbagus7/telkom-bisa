@@ -106,6 +106,9 @@
                             $title = $donasi_id['title'];
                             $description = $donasi_id['description'];
                             $total = round($donasi_id['total'] / $donasi_id['target_funding'] * 100);
+                            if($total > 100) {
+                                $total = 100;
+                            }
                             $image = $donasi_id['image'];
 
                             echo '<div class="single-post">';
@@ -144,7 +147,7 @@
                             $id = $_GET['id'];
 
                             // Fetech donasi data based on id
-                            $result = mysqli_query($mysqli, "SELECT * FROM donator ORDER BY id DESC");
+                            $result = mysqli_query($mysqli, "SELECT * FROM donator WHERE donasi_id=$id ORDER BY id DESC");
 
                             while ($donator = mysqli_fetch_array($result)) {
                                 $message = $donator['message'];
