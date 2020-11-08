@@ -84,7 +84,7 @@ $result = mysqli_query($mysqli, "SELECT * FROM donasi ORDER BY id DESC");
                                     </div>
                                     <!-- Header-btn -->
                                     <div class="header-right-btn d-none d-lg-block ml-20">
-                                        <a href="#donasi" class="btn header-btn">Galang Dana</a>
+                                        <a href="galang-dana.php" class="btn header-btn">Galang Dana</a>
                                     </div>
                                 </div>
                             </div>

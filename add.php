@@ -1,3 +1,40 @@
+<?php
+// Display selected user data based on id
+// Getting id from url
+include_once("config.php");
+
+$id = $_GET['id'];
+
+// Fetech donasi data based on id
+$result = mysqli_query($mysqli, "SELECT * FROM donasi WHERE id=$id");
+
+$title;
+$description;
+$target;
+$total;
+while ($donasi_id = mysqli_fetch_array($result)) {
+    $title = $donasi_id['title'];
+    $description = $donasi_id['description'];
+    $target = $donasi_id['target_funding'];
+    $total = $donasi_id['total'];
+}
+// Check If form submitted, insert form data into users table.
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $message = $_POST['message'];
+    $total_donation = $_POST['total'];
+
+    // Insert user data into table
+    $result = mysqli_query($mysqli, "INSERT INTO donator(donasi_id,message,total) VALUES('$id','$message','$total_donation')");
+
+    $new_total = $total + $total_donation;
+    // Add total
+    $new_donasi = mysqli_query($mysqli, "UPDATE donasi SET total = $new_total WHERE id = $id");
+    // Show message when user added
+    // echo "Donasi berhasil. <a href='index.php'>Kembali ke halaman utama</a>";
+    header("Location: index.php");
+}
+?>
+
 <html>
 
 <head>
@@ -61,7 +98,7 @@
                                     </div>
                                     <!-- Header-btn -->
                                     <div class="header-right-btn d-none d-lg-block ml-20">
-                                        <a href="#donasi" class="btn header-btn">Donasi</a>
+                                        <a href="galang-dana.php" class="btn header-btn">Donasi</a>
                                     </div>
                                 </div>
                             </div>
@@ -106,7 +143,7 @@
                             $title = $donasi_id['title'];
                             $description = $donasi_id['description'];
                             $total = round($donasi_id['total'] / $donasi_id['target_funding'] * 100);
-                            if($total > 100) {
+                            if ($total > 100) {
                                 $total = 100;
                             }
                             $image = $donasi_id['image'];
@@ -234,7 +271,7 @@
                         <div class="blog_right_sidebar">
                             <aside class="single_sidebar_widget search_widget">
                                 <p>Donasi Sekarang</p>
-                                <form action="add.php?id=<?php echo $_GET['id']; ?>" method="post" name="form1">
+                                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]) . '?id=' . $_GET['id'] ?>" method="post" name="form1">
                                     <div class="form-group">
                                         <div class="input-group mb-3">
                                             <input class="form-control" name="total" id="name" type="number" placeholder="Isi Nominal..">
@@ -255,42 +292,7 @@
         </section>
     </main>
 
-    <?php
-    // Display selected user data based on id
-    // Getting id from url
-    include_once("config.php");
 
-    $id = $_GET['id'];
-
-    // Fetech donasi data based on id
-    $result = mysqli_query($mysqli, "SELECT * FROM donasi WHERE id=$id");
-
-    $title;
-    $description;
-    $target;
-    $total;
-    while ($donasi_id = mysqli_fetch_array($result)) {
-        $title = $donasi_id['title'];
-        $description = $donasi_id['description'];
-        $target = $donasi_id['target_funding'];
-        $total = $donasi_id['total'];
-    }
-    // Check If form submitted, insert form data into users table.
-    if (isset($_POST['Submit'])) {
-        $message = $_POST['message'];
-        $total_donation = $_POST['total'];
-
-        // Insert user data into table
-        $result = mysqli_query($mysqli, "INSERT INTO donator(donasi_id,message,total) VALUES('$id','$message','$total_donation')");
-
-        $new_total = $total + $total_donation;
-        // Add total
-        $new_donasi = mysqli_query($mysqli, "UPDATE donasi SET total = $new_total WHERE id = $id");
-        // Show message when user added
-        // echo "Donasi berhasil. <a href='index.php'>Kembali ke halaman utama</a>";
-        // header("Location: index.php");
-    }
-    ?>
     <footer>
         <div class="footer-wrapper section-bg2" data-background="assets/img/gallery/footer_bg.png">
             <!-- Footer Top-->

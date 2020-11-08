@@ -29,44 +29,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $target_end = test_input($_POST["target_end"]);
     }
 
-    $target_dir = "uploads/";
-    $target_file = $target_dir . basename($_FILES["image"]["name"]);
-    $uploadOk = 1;
-    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
-    $check = getimagesize($_FILES["image"]["tmp_name"]);
-    if ($check !== false) {
+    $uploadOk = 0;
+    if (empty($_FILES["image"]["name"])) {
+        $imageErr = "Foto tidak boleh kosong";
+    } else {
+        $target_dir = "uploads/";
+        $target_file = $target_dir . basename($_FILES["image"]["name"]);
         $uploadOk = 1;
-    } else {
-        $imageErr =  "File harus gambar";
-        $uploadOk = 0;
-    }
-
-    if (
-        $imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
-    ) {
-        $imageErr =  "File hanya boleh berekstensi JPG,PNG,JPEG";
-        $uploadOk = 0;
-    }
-
-    if ($_FILES["image"]["size"] > 2000000) {
-        $imageErr = "File tidak boleh lebih dari 2MB";
-        $uploadOk = 0;
-    }
-
-    // Check if $uploadOk is set to 0 by an error
-    if ($uploadOk == 0) {
-        $imageErr = "File gagal diupload";
-    } else {
-        if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-            $image = $target_dir . htmlspecialchars(basename($_FILES["image"]["name"]));
+        $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+        $check = getimagesize($_FILES["image"]["tmp_name"]);
+        if ($check !== false) {
             $uploadOk = 1;
         } else {
-            $imageErr = "File gagal diupload";
+            $imageErr =  "File harus gambar";
             $uploadOk = 0;
+        }
+
+        if (
+            $imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
+        ) {
+            $imageErr =  "File hanya boleh berekstensi JPG,PNG,JPEG";
+            $uploadOk = 0;
+        }
+
+        if ($_FILES["image"]["size"] > 2000000) {
+            $imageErr = "File tidak boleh lebih dari 2MB";
+            $uploadOk = 0;
+        }
+
+        // Check if $uploadOk is set to 0 by an error
+        if ($uploadOk == 0) {
+            $imageErr = "File gagal diupload";
+        } else {
+            if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
+                $image = $target_dir . htmlspecialchars(basename($_FILES["image"]["name"]));
+                $uploadOk = 1;
+            } else {
+                $imageErr = "File gagal diupload";
+                $uploadOk = 0;
+            }
         }
     }
 
-    $result = '';
     if (!empty($_POST["title"]) & !empty($_POST["description"]) & !empty($_POST["target_funding"]) & !empty($_POST["target_end"]) &  $uploadOk == 1) {
 
         // Create database connection using config file
@@ -76,9 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $result = mysqli_query($mysqli, "INSERT INTO donasi(title,description,target_funding,target_end,image) VALUES('$title','$description','$target_funding','$target_end','$image')");
 
         header("Location: index.php");
-    } else {
-
-    }
+    } else { }
 }
 
 function test_input($data)
